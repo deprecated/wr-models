@@ -1,0 +1,139 @@
+import numpy as N
+import subprocess
+
+cloudy_input = \
+    """* Cloudy input file written by multirun-cool.py
+title %(ionized)s Cooling Curve (T=%(T).2f, den=%(hden).1f, star=WR136, phi(h)=%(phi).2f)
+set punch prefix "%(filename)s"
+constant density
+hden %(hden).2f
+stop temperature 0
+stop zone 3
+iterate
+cosmic ray background
+cmb
+table ism
+%(extinguish_cmd)s
+no grain physics
+set punch hash "return"
+set punch flush
+punch overview file=".ovr"
+punch incident continuum ".cont"
+punch heat file=".heat" 
+punch cool file=".cool" 
+"""
+
+yes_extinguish_cmd = "extinguish column = 22"
+no_extinguish_cmd = "// no attenuation of ionizing continuum"
+
+no_radiation_input = """* Collisional ionization equilibrium
+coronal equilibrium, T = %(T).2f
+no photoionization
+"""
+
+bbody_radiation_input = """* Photoionization equilibrium
+constant temperature %(T).2f
+black body, T=%(Tstar).1f K 
+phi(h) %(phi).2f
+"""
+
+wr136_radiation_input = """* Photoionization equilibrium
+table star "powr-models.mod" 0.301029995
+phi(h) %(phi).2f
+"""
+
+smc_abundances_input = """* SMC Abundances 
+* From Russell & Dopita 1992 ApJ 384, 508
+element abundance helium -1.09
+element abundance carbon  -4.27
+element abundance nitrogen    -5.37
+element abundance oxygen    -3.97
+element abundance neon   -4.73
+element abundance magnesium   -5.02
+element abundance silicon   -4.97
+element abundance sulphur    -5.41
+element abundance argon   -6.19
+element abundance calcium   -6.31
+* Cl wasn't in the list, so make something up....
+element scale factor chlorine 0.2
+element abundance iron   -5.16
+element abundance nickel   -6.15
+"""
+
+ism_abundances_input = """* Local ISM abundances
+* From Russell & Dopita 1992 ApJ 384, 508
+element abundance helium      -1.0
+element abundance carbon      -3.6
+element abundance nitrogen    -4.4
+element abundance oxygen      -3.3
+element abundance neon	      -4.1
+element abundance magnesium   -4.4
+element abundance silicon     -4.3
+element abundance sulphur     -4.9
+element abundance argon	      -5.5
+element abundance calcium     -5.8
+element abundance iron	      -4.5
+element abundance nickel      -5.7
+"""
+
+ngc6888_abundances_input = """* NGC6888 nebula abundances
+element abundance helium      -0.79
+element abundance carbon      -3.14
+element abundance nitrogen    -3.46
+element abundance oxygen      -3.80
+element abundance neon	      -4.49
+element abundance magnesium   -5.3
+element abundance silicon     -5.5
+element abundance sulphur     -5.23
+element abundance argon	      -5.6
+element abundance calcium     -7.9
+element abundance iron	      -5.67
+element abundance nickel      -7.7
+"""
+
+orion_abundances_input = """* Orion nebula abundances
+abundances H II region
+"""
+
+pn_abundances_input = """* Planetary nebula abundances
+abundances planetary nebula
+"""
+
+cloudy_cmd = ["time", "../cloudy.exe"] 
+
+hdenrange = [0.0, 1.0, 2.0]
+
+# Tstarrange = (2.5e4, 4.0e4, 1.0e5)
+# Trange = N.arange(2.0, 9.1, 0.1)
+# phirange = (8.0, 9.0, 10.0)
+Tstar_range = [5.0e4, 1.0e5, 1.5e5]
+Trange = N.arange(2.0, 9.1, 0.1)
+phirange = [9.0, 10.0, 11.0]
+
+#radiation_input = bbody_radiation_input
+radiation_input = wr136_radiation_input
+
+ionized = "photo"
+extinguish_cmd = no_extinguish_cmd
+#for Tstar in Tstar_range:
+for abundances_input, abunid in (
+    (ngc6888_abundances_input, "ngc6888"),
+    ):
+    for hden in hdenrange:
+        for phi in phirange:
+            for T in Trange:
+                filename = "%s-wr136-phi%.2f-%s-n%.2f-T%.2f" % (
+                    ionized, phi, abunid, hden, T)
+                print "Calculating " + filename
+                infile = file('in/%s.in' % filename, 'w')
+                infile.write(cloudy_input % locals())
+                infile.write(abundances_input)
+                infile.write(radiation_input % locals())
+                infile.close()
+                infile = file('in/%s.in' % filename, 'r')
+                outfile = file('out/%s.out' % filename, 'w')
+                subprocess.Popen(cloudy_cmd, 
+                                 stdin=infile, 
+                                 stdout=outfile, 
+                                 cwd='out/'
+                                 ).wait()

@@ -1,0 +1,36 @@
+* Cloudy input file written by multirun-cool.py
+title photo Cooling Curve (T=7.40, den=1.0, star=WR136, phi(h)=9.00)
+set punch prefix "photo-wr136-phi9.00-ngc6888-n1.00-T7.40"
+constant density
+hden 1.00
+stop temperature 0
+stop zone 3
+iterate
+cosmic ray background
+cmb
+table ism
+// no attenuation of ionizing continuum
+no grain physics
+set punch hash "return"
+set punch flush
+punch overview file=".ovr"
+punch incident continuum ".cont"
+punch heat file=".heat" 
+punch cool file=".cool" 
+* NGC6888 nebula abundances
+element abundance helium      -0.79
+element abundance carbon      -3.14
+element abundance nitrogen    -3.46
+element abundance oxygen      -3.80
+element abundance neon	      -4.49
+element abundance magnesium   -5.3
+element abundance silicon     -5.5
+element abundance sulphur     -5.23
+element abundance argon	      -5.6
+element abundance calcium     -7.9
+element abundance iron	      -5.67
+element abundance nickel      -7.7
+* Photoionization equilibrium
+table star "powr-models.mod" 0.301029995
+phi(h) 9.00
+constant temperature 7.40
