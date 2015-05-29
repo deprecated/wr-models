@@ -1,0 +1,59 @@
+title Non-equilibrium shock heat/cool curve - star=WR136
+	constant density // comment
+	hden 1.97 linear
+	cosmic ray background
+	cmb
+	table ism
+	no grain physics
+	print line faint 2 log 
+	print line cumulative
+	print ages
+	set save hash "return"
+	set save flush
+	save time dependent ".tim" no hash
+	save overview file=".ovr" no hash
+	save heat file=".heat" no hash
+	save cool file=".cool" no hash
+	save lines, emissivity file=".ems" no hash
+	O  3 5006.84A
+	O  3 4363.21A
+	H  1 6562.85A
+	end of lines
+	save continuum units Angstroms ".con"
+	save element carbon file=".C" no hash
+	save element nitrogen file=".N" no hash
+	save element oxygen file=".O" no hash
+	save element iron file=".Fe" no hash
+	* NGC6888 nebula abundances
+	element abundance helium      -0.79
+	element abundance carbon      -3.14
+	element abundance nitrogen    -3.46
+	element abundance oxygen      -3.80
+	element abundance neon        -4.49
+	element abundance magnesium   -5.3
+	element abundance silicon     -5.5
+	element abundance sulphur     -5.23
+	element abundance argon       -5.6
+	element abundance calcium     -7.9
+	element abundance iron        -5.67
+	element abundance nickel      -7.7
+	set dr 0
+	set nend 1
+	stop zone 1
+	set dynamics relax 2
+	iterate 200
+	hextra -35.22 time
+	// stop time when temperature falls below 1e4 K
+	time first timestep 5.0 stop at 13.0
+	time 0 scale 0
+	time 4.9 scale 0
+	time 5 scale 20 ionization
+	time 6.04 scale 20    
+	time 6.0414 scale 0    
+	time 9 scale 0  recombination
+	time 20 scale 0  
+	end of times
+	* Photoionization equilibrium
+	table star "powr-models.mod" 2
+	phi(h) 11
+	

@@ -60,18 +60,54 @@ CLOCK: [2015-03-28 Sat 18:31]--[2015-03-28 Sat 19:39] =>  1:08
 
 ** Compile the models for use with Cloudy
 :LOGBOOK:  
+- Note taken on [2015-05-27 Wed 09:03] \\
+  Added a fuller description of how to compile the ascii file for Cloudy
+- Note taken on [2015-05-27 Wed 08:54] \\
+  Updated for new Cloudy installation
 CLOCK: [2015-03-28 Sat 19:39]--[2015-03-29 Sun 00:19] =>  4:40
 :END:      
 
-Following instructions from http://www.nublado.org/wiki/StellarAtmospheres
-: compile stars "<yourname.ascii>"
-
-#+BEGIN_SRC sh :results output
-CLOUDY=$HOME/Work/CLOUDY/git-svn
+First copy files to Cloudy data directory
+#+BEGIN_SRC sh :results silent
+CLOUDY=$HOME/Work/CLOUDY/cloudy
 cp powr-models.ascii $CLOUDY/data
 #+END_SRC
 
-#+RESULTS:
+
+Second, follow instructions from http://www.nublado.org/wiki/StellarAtmospheres
+
+: compile stars "<yourname.ascii>"
+
+Here is a log of the last time I did it. 
+#+BEGIN_EXAMPLE
+$ export C=/Users/will/Work/CLOUDY/cloudy/source
+$ cd $C/../data
+$ $C/cloudy.exe
+compile stars "powr-models.ascii"
+
+                                                         Cloudy 13.01.01
+                                                         www.nublado.org
+
+                       **************************************13Jan01**************************************
+                       *                                                                                 *
+                       * compile stars "powr-models.ascii"                                               *
+ GridCompile on the job.
+ lgCompileAtmosphere got powr-models.ascii.
+ Compiling: ... done.
+ lgCompileAtmosphere completed ok.
+
+
+ The compilation was successful!
+ The portable ascii files are no longer needed and may be deleted to save space.
+
+ Good Luck!!
+
+
+ [Stop in ParseCompile at parse_compile.cpp:497, Cloudy exited OK]
+$ cd -
+#+END_EXAMPLE
+
+
 
 
 
@@ -112,11 +148,11 @@ The abundances are not right, but should be qualitatively right
 *** Plot cooling functions
 #+name: cool-read-func
 #+BEGIN_SRC python
-  def get_cooltable(logphi=10.0, logn=0.0, star='wr136'):
-      cooldir = os.path.join('JaneCloudy', star.upper() + 'COOL')
+  def get_cooltable(logphi=10.0, logn=0.0, star='wr136', cwd='.'):
+      cooldir = os.path.join('JaneCloudy', star.upper() + 'COOL/')
       templ = 'coolfunc-photo-{}-phi{:.2f}-ngc6888-n{:.2f}.dat'
       coolfile = templ.format(star, logphi, logn)
-      return Table.read(os.path.join(cooldir, coolfile),
+      return Table.read(os.path.join(cwd, cooldir, coolfile),
                         format='ascii.commented_header', delimiter='\t')
 #+END_SRC
 
@@ -189,7 +225,7 @@ The abundances are not right, but should be qualitatively right
 
   outtab = [['M0', 'Ushock, km/s', 'v1, km/s', 'n0', 'n1', 'n2', 'T1', 'dcool, pc', 'tcool, yr'], None]
 
-  for n0 in [3.0, 2.5, 2.0, 1.75, 1.5, 1.25, 1.0, 0.75, 0.5]:
+  for n0 in [3.0, 2.5, 2.0, 1.75, 1.5, 1.25, 1.0, 0.75, 0.5, 0.3]:
       # Mach number
       M0 = np.sqrt(n2/n0)
       # Immediate post-shock density
@@ -224,6 +260,7 @@ The abundances are not right, but should be qualitatively right
 |   10 |          108 |     27.8 |    1 | 3.88 | 100 | 3.21e+05 |     0.322 |  1.13e+04 |
 | 11.5 |          125 |     31.8 | 0.75 | 2.93 | 100 | 4.25e+05 |      1.19 |  3.65e+04 |
 | 14.1 |          153 |     38.7 |  0.5 | 1.97 | 100 | 6.34e+05 |      5.18 |  1.31e+05 |
+| 18.3 |          197 |     49.7 |  0.3 | 1.19 | 100 | 1.05e+06 |      23.4 |  4.61e+05 |
 
 
 
@@ -460,6 +497,9 @@ fig.savefig(pltfile)
 :LOGBOOK:  
 CLOCK: [2015-05-25 Mon 09:52]--[2015-05-25 Mon 12:33] =>  2:41
 :END:      
+:PROPERTIES:
+:ID:       05FA6299-E408-4935-8237-194ECCA91844
+:END:
 + This is an attempt to reconstruct this from memory since I had an emacs disaster last night and lost all my work for the last two days
 + First equation is the same
 + Second equation is \(T / T_{1} = 1 - 1.5 \int (\Lambda / \Lambda_{1})(T_{1}^{2}/T^{2})\, ds\)
@@ -468,7 +508,7 @@ CLOCK: [2015-05-25 Mon 09:52]--[2015-05-25 Mon 12:33] =>  2:41
 + Note that the following needs to be run in python 3
 #+name: cooling-shell-table
 #+header: :var models=cooling-zone-models
-#+BEGIN_SRC python :return pltfile :results file
+#+BEGIN_SRC python :return pltfile :results file 
   import os
   import numpy as np
   from scipy import interpolate, optimize, integrate
@@ -538,7 +578,13 @@ CLOCK: [2015-05-25 Mon 09:52]--[2015-05-25 Mon 12:33] =>  2:41
 #+RESULTS: cooling-shell-table
 [[file:cooling-shell-new-n100.pdf]]
 
-      
+****** [O III] and Ha emissivities
+
+******* Equilibrium emissivity in the cooling zoone
+
+******* Non equilibrium emissivity in the shock
+
+
 
 
 ****** Relation of isothermal sound speed and temperature:
@@ -681,3 +727,880 @@ CLOCK: [2015-05-25 Mon 09:52]--[2015-05-25 Mon 12:33] =>  2:41
 | 20.00 | 0.01 | 173.67 | 173.67 |
 
 And [[/Users/will/Dropbox/Org/shell-thickness.pdf][here]] is the corresponding graph of the shell thickness as a function of Mach number, assuming that \(R = 2.5''\) and \(n_{3} = 2000 \mathrm{cm^{-3}}\). 
+* Tests of time-dependent Cloudy
+:PROPERTIES:
+:dir:      TimeCloudy
+:noweb:    yes    
+:END:
+
+** Mode for cloudy input files 
+#+BEGIN_SRC emacs-lisp
+  (require 'generic-x) ;; we need this
+
+  (define-generic-mode 
+      'cloudy-input-mode                         ;; name of the mode to create
+    '("c ")                           ;; comments start with 'c'
+    '("set" "stop" "hden" "table" "blackbody" "title" "element" "constant" "cmb" "table"
+      "print" "save" "iterate" "time" "end" "cosmic ray" "coronal" "phi(h)")                     ;; some keywords
+    '(("\\(^[cC\*]\\($\\| .*\\)\\)" 1 'font-lock-comment-face t)
+      ("\\(//\\($\\| .*\\)\\)" 1 'font-lock-comment-face t)
+      ("=" . 'font-lock-operator-face)     ;; '=' is an operator
+      ("\\b\\(scale\\|log\\|linear\\|file\\|units\\)\\b" . 'font-lock-constant-face)     
+      ("\\b\\(no\\|end\\)\\b" 1 'font-lock-negation-char-face t)     
+      ("^title \\(.*\\)$" 1 'font-lock-doc-face t)     
+      ("
+
+\\(.*\\)$" 1 'font-lock-doc-face t)     
+      )     ;; 
+    '("\\.in$")                      ;; files for which to activate this mode 
+    nil                              ;; other functions to call
+    "A mode for Cloudy input files"            ;; doc string for this mode
+    )
+#+END_SRC
+
+#+RESULTS:
+: cloudy-input-mode
+
+** Cooling model from Cloudy's test suite
+
+Initially copied from [[/Users/will/Work/CLOUDY/cloudy/tsuite/experimental/time_cool_cd.in]]
+
+#+BEGIN_SRC cloudy-input :tangle TimeCloudy/time_cool_cd.in :padline no
+  title constant density cooling cloud
+  c
+  c commands controlling continuum =========
+  c 3 keV
+  blackbody 3.4e7 K
+  ionization parameter -10 time
+  coronal 3.4e7 K init time 
+  c
+  c commands for density & abundances =========
+  c want nT = 2e6 K cm-3
+  hden 5.88e-2 linear
+  C
+  c commands controlling geometry  =========
+  set dr 0 
+  set nend 1
+  stop zone 1
+  c
+  c other commands for details     =========
+  c the time dependent calculations will start on iteration 3
+  c first two are to relax the calculation
+  set dynamics relax 2
+  c number of time steps
+  iterate 300
+  stop time when temperature falls below 1e5 K
+  time first timestep 11.5 
+  time 10 scale 0    
+  time 11 scale=0  recombination
+  time 20 scale=0  
+  end of times
+  cosmic rays background
+  c
+  c commands controlling output    =========
+  print line faint 2 log 
+  print line cumulative
+  print ages
+  save time dependent ".tim" no hash
+  save overview ".ovr" no hash
+  save cooling ".col" no hash
+  save heating ".het" no hash
+  save continuum units Angstroms ".con"
+  save cumulative continuum units Angstroms last ".concum"
+  c
+  c commands giving the asserts    =========
+  c
+  c .in 
+  c class dynamics 
+  c ========================================
+  c 
+
+  test time dependent cooling at constant density
+
+#+END_SRC
+
+
+#+name: read-in-cloudy-model
+#+BEGIN_SRC python
+  import sys
+  sys.path.append('/Users/will/Work/CLOUDY/claudia/')
+  from claudia import CloudyModel
+  CloudyModel.skipsaves.append('continuum')
+  CloudyModel.skipsaves.remove(".tim")
+  m = CloudyModel(prefix, niter=0)
+#+END_SRC
+
++ Table of heating/cooling for every tenth timestep
+#+BEGIN_SRC python
+  prefix = "time_cool_cd"
+  <<read-in-cloudy-model>>
+  return [m.col.dtype.names, None] + list(m.col)[::10]
+  # return list(zip(m.ovr.Te, m.ovr.HeIII))
+  # return list(zip(m.col['Temp K'], m.col['Ctot erg/cm3/s']))
+#+END_SRC
+
+#+RESULTS:
+| depth_cm |      Temp_K | Htot_ergcm3s | Ctot_ergcm3s |
+|---------+------------+-------------+-------------|
+|     0.5 | 34000000.0 |  1.3014e-27 |  7.9497e-26 |
+|     0.5 | 33883000.0 |  1.3025e-27 |  7.9492e-26 |
+|     0.5 | 25251000.0 |  1.3025e-27 |   7.607e-26 |
+|     0.5 | 16721000.0 |  1.3025e-27 |  8.4208e-26 |
+|     0.5 | 10989000.0 |  1.3023e-27 |  1.1081e-25 |
+|     0.5 |  7290500.0 |   1.302e-27 |  1.1439e-25 |
+|     0.5 |  4845700.0 |  1.3018e-27 |  1.1507e-25 |
+|     0.5 |  3185500.0 |  1.3015e-27 |  1.4874e-25 |
+|     0.5 |  2057800.0 |  1.3009e-27 |  2.8848e-25 |
+|     0.5 |  1341800.0 |   1.301e-27 |  4.5594e-25 |
+|     0.5 |   888800.0 |  1.2998e-27 |  4.9696e-25 |
+|     0.5 |   588440.0 |  1.2995e-27 |  5.4858e-25 |
+|     0.5 |   387750.0 |  1.2995e-27 |  6.7716e-25 |
+|     0.5 |   253730.0 |  1.2997e-27 |  9.8314e-25 |
+|     0.5 |   168160.0 |  1.3018e-27 |  1.0576e-24 |
+|     0.5 |   112520.0 |  1.3034e-27 |  9.0959e-25 |
+
+
++ Plot cooling curve
+#+BEGIN_SRC python :results file :return pltfile
+  from matplotlib import pyplot as plt
+  import seaborn as sns
+  pltfile = 'noneq-cooling.pdf'
+  <<read-in-cloudy-model>>  
+  plt.loglog(m.col.Temp_K, m.col.Ctot_ergcm3s/5.88e-2**2)
+  plt.loglog(m.col.Temp_K, m.col.Htot_ergcm3s/5.88e-2**2)
+  plt.xlim(1e2, 1e9)
+  plt.ylim(1e-25, 1e-21)
+  plt.savefig(pltfile)
+#+END_SRC
+
+#+RESULTS:
+[[file:/Users/will/Dropbox/JaneWR/TimeCloudy/noneq-cooling.pdf]]
+
+** Write out all the line labels
+#+BEGIN_SRC cloudy-input :tangle TimeCloudy/save_line_labels.in :padline no
+  title Just save the damn line labels
+  hden 1 linear
+  table star "powr-models.mod" 2 
+  phi(h) 11
+  save line labels file=".dat"
+  set dr 0 
+  set nend 1
+  stop zone 1
+#+END_SRC
+
+** Second cooling test with realistic abundances and radiation field
++ Notes :: 
+  + Cooling at constant temperature from initial coronal equilibrium
+  + =:results output= is necessary to avoid unwanted leading tabs in the triple-quoted strings
+  + the =phi(h)= comand does not recognise =linear= keyword, so it must always be log
+  + we put the =time= keyword on the =phi(h)= continuum command because Cloudy requires that at least one continuum or extra heat must be varying, but the table of (log(time), log(scale)) has a constant scale
+  + I tried =iterate to convergence= but it converged immediately
+
+#+BEGIN_SRC python :results output silent
+  cloudy_input = """title Non-equilibrium cooling Curve - star=WR136
+  constant density // comment
+  hden {hden:.2f} linear
+  set dr 0
+  set nend 1
+  stop zone 1
+  set dynamics relax 2
+  iterate 200
+  // stop time when temperature falls below 1e4 K
+  time first timestep 9.0 stop at 13.0
+  time 8 scale 0     
+  time 9 scale=0  recombination
+  time 20 scale=0  
+  end of times
+  cosmic ray background
+  cmb
+  table ism
+  no grain physics
+  print line faint 2 log 
+  print line cumulative
+  print ages
+  set save hash "return"
+  set save flush
+  save time dependent ".tim" no hash
+  save overview file=".ovr" no hash
+  save heat file=".heat" no hash
+  save cool file=".cool" no hash
+  save lines, emissivity file=".ems" no hash
+  O  3 5006.84A
+  O  3 4363.21A
+  H  1 6562.85A
+  end of lines
+  save continuum units Angstroms ".con"
+  """
+
+  ngc6888_abundances_input = """* NGC6888 nebula abundances
+  element abundance helium      -0.79
+  element abundance carbon      -3.14
+  element abundance nitrogen    -3.46
+  element abundance oxygen      -3.80
+  element abundance neon        -4.49
+  element abundance magnesium   -5.3
+  element abundance silicon     -5.5
+  element abundance sulphur     -5.23
+  element abundance argon       -5.6
+  element abundance calcium     -7.9
+  element abundance iron        -5.67
+  element abundance nickel      -7.7
+  """
+
+  wr136_radiation_input = """* Photoionization equilibrium
+  table star "powr-models.mod" 2
+  phi(h) {phi:.4g} time
+  coronal {T:.4g} K init time
+  """
+
+  with open('wr-noneq-cooltest.in', 'w') as f:
+      f.write(cloudy_input.format(hden=3.88))
+      f.write(ngc6888_abundances_input)
+      f.write(wr136_radiation_input.format(phi=11.0, T=3.21e5))
+
+#+END_SRC
+
+Run with 
+#+BEGIN_EXAMPLE
+$C/cloudy.exe -p wr-noneq-cooltest
+#+END_EXAMPLE
+
++ Table of heating/cooling for every tenth timestep
+#+BEGIN_SRC python
+  prefix = "wr-noneq-cooltest"
+  <<read-in-cloudy-model>>
+  return [m.cool.dtype.names, None] + list(m.cool)[::10]
+  # return list(zip(m.ovr.Te, m.ovr.HeIII))
+  # return list(zip(m.col['Temp K'], m.col['Ctot erg/cm3/s']))
+#+END_SRC
+
+#+RESULTS:
+| depth_cm |    Temp_K | Htot_ergcm3s | Ctot_ergcm3s |
+|---------+----------+-------------+-------------|
+|     0.5 | 321000.0 |  2.8502e-24 |  2.1637e-21 |
+|     0.5 | 265380.0 |   3.549e-24 |  2.6744e-21 |
+|     0.5 | 173010.0 |  5.8004e-24 |  4.2422e-21 |
+|     0.5 | 114290.0 |  9.3514e-24 |   4.928e-21 |
+|     0.5 |  76631.0 |  1.4213e-23 |  4.0247e-21 |
+|     0.5 |  51867.0 |  1.9745e-23 |  2.6018e-21 |
+|     0.5 |  35377.0 |  2.6249e-23 |  1.3954e-21 |
+|     0.5 |  24339.0 |  3.4392e-23 |  6.1566e-22 |
+|     0.5 |  16927.0 |   4.456e-23 |  2.3072e-22 |
+|     0.5 |  12029.0 |  5.6184e-23 |  8.8666e-23 |
+|     0.5 |  10165.0 |  6.2786e-23 |  6.2786e-23 |
+
++ Plot cooling curve
+#+BEGIN_SRC python :results file :return pltfile
+  import os
+  from matplotlib import pyplot as plt
+  import seaborn as sns
+  from astropy.table import Table
+  pltfile = 'wr-noneq-coolcurve.pdf'
+  prefix = "wr-noneq-cooltest"
+  <<read-in-cloudy-model>>
+  <<cool-read-func>>
+  t = get_cooltable(11.0, 0.0, cwd='..')
+
+  NeNp = m.ovr.HII*m.ovr.hden*m.ovr.eden
+  plt.loglog(m.cool.Temp_K, m.cool.Ctot_ergcm3s/NeNp)
+  plt.loglog(m.cool.Temp_K, m.cool.Htot_ergcm3s/NeNp)
+  plt.loglog(t['Temperature'], t['Lambda (erg cm3/s)'], alpha=0.3, color='k', lw=3)
+  plt.xlim(1e2, 1e9)
+  plt.ylim(1e-24, 1e-21)
+  plt.savefig(pltfile)
+#+END_SRC
+
+#+RESULTS:
+[[file:/Users/will/Dropbox/JaneWR/TimeCloudy/wr-noneq-coolcurve.pdf]]
+
+Plot T versus time
++ Note that we can't use =m.tim.T= because that is transpose!
+#+BEGIN_SRC python :results file :return pltfile
+  import os
+  from matplotlib import pyplot as plt
+  import seaborn as sns
+  from astropy.table import Table
+  pltfile = 'wr-time-evolution.pdf'
+  prefix = "wr-noneq-cooltest"
+  <<read-in-cloudy-model>>
+  plt.plot(m.tim.elapsed_time/3.15576e7, m.tim['T'], '.')
+  plt.xlim(0.0, 5.e11/3.15576e7)
+  plt.xlabel('Time, yr')
+  plt.ylabel('Temperature, K')
+  plt.savefig(pltfile)
+#+END_SRC
+
+#+RESULTS:
+[[file:/Users/will/Dropbox/JaneWR/TimeCloudy/wr-time-evolution.pdf]]
+
+Plot line emissivities
+#+BEGIN_SRC python :results file :return pltfile
+  import os
+  from matplotlib import pyplot as plt
+  import seaborn as sns
+  from astropy.table import Table
+  pltfile = 'wr-noneq-emissivity.pdf'
+  prefix = "wr-noneq-cooltest"
+  <<read-in-cloudy-model>>
+  for lineid in m.ems.dtype.names[1:]:
+      plt.loglog(m.cool.Temp_K, 10**m.ems[lineid], label=lineid)
+  plt.xlim(9e3, 1e6)
+  plt.xlabel('Temperature, K')
+  plt.ylabel('Line emissivity, erg /cm3 /s')
+  plt.legend()
+  plt.savefig(pltfile)
+#+END_SRC
+
+#+RESULTS:
+[[file:/Users/will/Dropbox/JaneWR/TimeCloudy/wr-noneq-emissivity.pdf]]
+
+
+** DONE Third nonequilibrium test with impulsive heating
+CLOSED: [2015-05-28 Thu 09:45]
++ Use time-dependent =hextra= command
+  + We need to choose the duration of the heating
+    + Take 1e7 seconds as comfortably small
+      + Actually, we will try making it 10 times smaller: 1e6
+    + Units of =hextra= are erg/cm^3/s
+    + So this is \(\Delta\Epsilon_{0} / (v_{1} \Delta t)\) where \(\Delta\Epsilon_{0} = \frac12 (\rho_{0} v_{0}^{3} - \rho_{1} v_{1}^{3})\) is the difference in KE flux on the two sides.
+    + m = 1.67262158e-24 (1 + 4 0.162) = 2.75648036384e-24
+    + So with M0=10 model: v0 = 108 km/s, v1 = 27.8 km/s, n0 = 1, n1 = 3.88
+      + dE_0 = 0.5 2.75648036384e-24 1e5^3 (1 108^3 - 3.88 27.8^3) = 1.6213e-3 erg/cm2/s
+      + => hextra = 1.6213e-3 / 27.8 1e5 1e6 = 5.832e-16 erg/cm^3/s
+      + This can be compared with 1e-23 to 1e-20 for the actual cooling/heating rates
+      + Check what T jump this implies \Delta{}T = hextra \Delta{}t / 1.5  = 5.832e-17 1e7 / 1.5 1.3806503e-16 = 2.8e6 K !!! too much
+      + Try it anyway
+
+#+name: templates-for-shock-models
+#+BEGIN_SRC python :results output silent
+  cloudy_input = """title Non-equilibrium shock heat/cool curve - star=WR136
+  constant density // comment
+  hden {hden:.2f} linear
+  cosmic ray background
+  cmb
+  table ism
+  no grain physics
+  print line faint 2 log 
+  print line cumulative
+  print ages
+  set save hash "return"
+  set save flush
+  save time dependent ".tim" no hash
+  save overview file=".ovr" no hash
+  save heat file=".heat" no hash
+  save cool file=".cool" no hash
+  save lines, emissivity file=".ems" no hash
+  O  3 5006.84A
+  O  3 4363.21A
+  H  1 6562.85A
+  end of lines
+  save continuum units Angstroms ".con"
+  save element carbon file=".C" no hash
+  save element nitrogen file=".N" no hash
+  save element oxygen file=".O" no hash
+  save element iron file=".Fe" no hash
+  """
+
+  shock_input = """set dr 0
+  set nend 1
+  stop zone 1
+  set dynamics relax 2
+  iterate 200
+  hextra {logExtraHeat:.2f} time
+  // stop time when temperature falls below 1e4 K
+  time first timestep 4.0 stop at 13.0
+  time 0 scale 0
+  time 3.9 scale 0
+  time 4 scale 20 ionization
+  time 5.04 scale 20    
+  time 5.0414 scale 0    
+  time 9 scale 0  recombination
+  time 20 scale 0  
+  end of times
+  """
+
+  ngc6888_abundances_input = """* NGC6888 nebula abundances
+  element abundance helium      -0.79
+  element abundance carbon      -3.14
+  element abundance nitrogen    -3.46
+  element abundance oxygen      -3.80
+  element abundance neon        -4.49
+  element abundance magnesium   -5.3
+  element abundance silicon     -5.5
+  element abundance sulphur     -5.23
+  element abundance argon       -5.6
+  element abundance calcium     -7.9
+  element abundance iron        -5.67
+  element abundance nickel      -7.7
+  """
+
+  wr136_radiation_input = """* Photoionization equilibrium
+  table star "powr-models.mod" 2
+  phi(h) {phi:.4g}
+  """
+
+#+END_SRC
+
+
+This is the initial test model
+#+BEGIN_SRC python :results output silent
+  <<templates-for-shock-models>>
+  with open('wr-noneq-shocktest.in', 'w') as f:
+      f.write(cloudy_input.format(hden=3.88))
+      f.write(ngc6888_abundances_input)
+      f.write(shock_input.format(logExtraHeat=-15.23-20))
+      f.write(wr136_radiation_input.format(phi=11.0))
+#+END_SRC
+
+*** Plotting the shock test model
+**** Table of heating/cooling for every tenth timestep
+#+BEGIN_SRC python
+  prefix = "wr-noneq-shocktest"
+  <<read-in-cloudy-model>>
+  return [m.cool.dtype.names, None] + list(m.cool)[::5]
+  # return list(zip(m.ovr.Te, m.ovr.HeIII))
+  # return list(zip(m.col['Temp K'], m.col['Ctot erg/cm3/s']))
+#+END_SRC
+
+#+RESULTS:
+| depth_cm |   Temp_K | Htot_ergcm3s | Ctot_ergcm3s |
+|----------+----------+--------------+--------------|
+|      0.5 |  10165.0 |   6.2784e-23 |   6.2784e-23 |
+|      0.5 | 136010.0 |   5.8884e-16 |   7.0991e-20 |
+|      0.5 | 293260.0 |   5.8884e-16 |   3.7315e-19 |
+|      0.5 | 324730.0 |   2.0025e-23 |   4.3549e-19 |
+|      0.5 | 321410.0 |   1.4052e-23 |   4.2102e-19 |
+|      0.5 | 281260.0 |   1.1353e-23 |   2.6328e-19 |
+|      0.5 | 235450.0 |   9.1615e-24 |    1.341e-19 |
+|      0.5 | 201690.0 |   8.0762e-24 |   7.2797e-20 |
+|      0.5 | 169500.0 |   7.8103e-24 |   3.8648e-20 |
+|      0.5 | 141190.0 |   8.4895e-24 |   2.3093e-20 |
+|      0.5 | 117010.0 |   9.9626e-24 |   1.5724e-20 |
+|      0.5 |  96648.0 |    1.205e-23 |   1.1399e-20 |
+|      0.5 |  79808.0 |   1.4452e-23 |   8.3695e-21 |
+|      0.5 |  65932.0 |   1.6982e-23 |     6.05e-21 |
+|      0.5 |  54521.0 |   1.9583e-23 |   4.2715e-21 |
+|      0.5 |  45138.0 |   2.2359e-23 |   2.9272e-21 |
+|      0.5 |  37422.0 |   2.5447e-23 |   1.9412e-21 |
+|      0.5 |  31069.0 |   2.8965e-23 |   1.2467e-21 |
+|      0.5 |  25837.0 |   3.2993e-23 |   7.7507e-22 |
+|      0.5 |  21524.0 |    3.758e-23 |   4.6957e-22 |
+|      0.5 |  17974.0 |   4.2709e-23 |   2.7865e-22 |
+|      0.5 |  15066.0 |   4.8298e-23 |   1.6474e-22 |
+|      0.5 |  12710.0 |   5.4169e-23 |   1.0189e-22 |
+|      0.5 |  10907.0 |   5.9896e-23 |   7.1224e-23 |
+|      0.5 |  10168.0 |   6.2774e-23 |   6.2815e-23 |
+
+**** Plot cooling curve
+#+BEGIN_SRC python :results file :return pltfile
+  import os
+  import numpy as np
+  from matplotlib import pyplot as plt
+  import seaborn as sns
+  from astropy.table import Table
+  pltfile = 'wr-noneq-shock-coolcurve.pdf'
+  prefix = "wr-noneq-shocktest"
+  <<read-in-cloudy-model>>
+  <<cool-read-func>>
+  t = get_cooltable(11.0, 0.0, cwd='..')
+
+  imax = np.argmax(m.cool.Temp_K)
+  NeNp = m.ovr.HII*m.ovr.hden*m.ovr.eden
+  plt.loglog(m.cool.Temp_K[:imax], m.cool.Ctot_ergcm3s[:imax]/NeNp[:imax], '.')
+  plt.loglog(m.cool.Temp_K[imax:], m.cool.Ctot_ergcm3s[imax:]/NeNp[imax:])
+  # plt.loglog(m.cool.Temp_K, m.cool.Htot_ergcm3s/NeNp)
+  plt.loglog(t['Temperature'], t['Lambda (erg cm3/s)'], alpha=0.3, color='k', lw=3)
+  plt.xlim(1e2, 1e9)
+  plt.ylim(1e-24, 1e-19)
+  plt.savefig(pltfile)
+#+END_SRC
+
+#+RESULTS:
+[[file:/Users/will/Dropbox/JaneWR/TimeCloudy/wr-noneq-shock-coolcurve.pdf]]
+
+**** Plot O ion fractions against time
+#+BEGIN_SRC python :results file :return pltfile
+  import os
+  from matplotlib import pyplot as plt
+  import seaborn as sns
+  from astropy.table import Table
+  pltfile = 'wr-shock-oxygen-evolution.pdf'
+  prefix = "wr-noneq-shocktest"
+  <<read-in-cloudy-model>>
+  t_yrs = (m.tim.elapsed_time + 2e4)/3.15576e7
+  for j in range(2, 7):
+      ion = 'O' + str(j)
+      plt.loglog(t_yrs, m.ovr[ion], label=ion)
+  plt.loglog(t_yrs, m.ovr.Te/1e4, 'k', alpha=0.1, lw=4, label='T/10^4 K')
+  plt.xlabel('Time, yr')
+  plt.ylabel('Ion fraction or temperature')
+  plt.ylim(1e-4, None)
+  plt.legend(ncol=2)
+  plt.savefig(pltfile)
+#+END_SRC
+
+#+RESULTS:
+[[file:/Users/will/Dropbox/JaneWR/TimeCloudy/wr-shock-oxygen-evolution.pdf]]
+
+**** Plot T versus time
+#+BEGIN_SRC python :results file :return pltfile
+  import os
+  from matplotlib import pyplot as plt
+  import seaborn as sns
+  from astropy.table import Table
+  pltfile = 'wr-shock-time-evolution.pdf'
+  prefix = "wr-noneq-shocktest"
+  <<read-in-cloudy-model>>
+  plt.plot(m.tim.elapsed_time/3.15576e7, m.tim['T'], '.')
+  plt.xlim(0.0, 5.e11/3.15576e7)
+  plt.xlabel('Time, yr')
+  plt.ylabel('Temperature, K')
+  plt.savefig(pltfile)
+#+END_SRC
+
+#+RESULTS:
+[[file:/Users/will/Dropbox/JaneWR/TimeCloudy/wr-shock-time-evolution.pdf]]
+
+**** Plot line emissivities vs T
+#+BEGIN_SRC python :results file :return pltfile
+  import os
+  import numpy as np
+  from matplotlib import pyplot as plt
+  import seaborn as sns
+  from astropy.table import Table
+  pltfile = 'wr-noneq-shock-emissivity.pdf'
+  prefix = "wr-noneq-shocktest"
+  <<read-in-cloudy-model>>
+  imax = np.argmax(m.cool.Temp_K)
+  colors = sns.dark_palette('red', 3)
+  for lineid, c in zip(m.ems.dtype.names[1:], colors):
+      print(c)
+      plt.loglog(m.cool.Temp_K[:imax], 10**m.ems[lineid][:imax], '.', color=c)
+      plt.loglog(m.cool.Temp_K[imax:], 10**m.ems[lineid][imax:], color=c, label=lineid)
+  plt.xlim(9e3, 1e6)
+  plt.xlabel('Temperature, K')
+  plt.ylabel('Line emissivity, erg /cm3 /s')
+  plt.legend()
+  plt.savefig(pltfile)
+#+END_SRC
+
+#+RESULTS:
+[[file:/Users/will/Dropbox/JaneWR/TimeCloudy/wr-noneq-shock-emissivity.pdf]]
+
+**** Plot line emissivities against time
+#+BEGIN_SRC python :results file :return pltfile
+  import os
+  import numpy as np
+  from matplotlib import pyplot as plt
+  import seaborn as sns
+  from astropy.table import Table
+  pltfile = 'wr-noneq-shock-emissivity-evolution.pdf'
+  prefix = "wr-noneq-shocktest"
+  <<read-in-cloudy-model>>
+  t_yrs = (m.tim.elapsed_time + 2e4)/3.15576e7
+  imax = np.argmax(m.cool.Temp_K)
+  colors = sns.dark_palette('red', 3)
+  # colors = 'bgr'
+
+  for lineid, c in zip(m.ems.dtype.names[1:], colors):
+      print(c)
+      plt.loglog(t_yrs[:imax], 10**m.ems[lineid][:imax], '.', color=c, alpha=0.3)
+      plt.loglog(t_yrs[imax:], 10**m.ems[lineid][imax:], color=c, label=lineid, alpha=0.6)
+  plt.xlabel('Time, yr')
+  plt.ylabel('Line emissivity, erg /cm3 /s')
+  plt.legend()
+  plt.savefig(pltfile)
+#+END_SRC
+
+#+RESULTS:
+[[file:/Users/will/Dropbox/JaneWR/TimeCloudy/wr-noneq-shock-emissivity-evolution.pdf]]
+
+
+* [2/3] Production runs of Cloudy shock models
+:PROPERTIES:
+:dir:      TimeCloudy
+:noweb:    yes    
+:END:
+
+** DONE Writing the Cloudy input files
+CLOSED: [2015-05-28 Thu 11:51]
+#+header: :var models=cooling-zone-models
+#+BEGIN_SRC python :results output
+  import numpy as np
+
+  <<templates-for-shock-models>>
+
+  # Shock heating time in seconds
+  theat = 1e5
+
+  mp = 1.67262158e-24                       # Proton rest mass [cgs]
+  yHe = 0.162                               # He/H abundance
+  km = 1.e5                                 # kilometer in cm
+
+  phiH = 11.0                     # log10 H ionizing photon flux
+
+  for row in models:
+      M0, u0, v1, n0, n1, N2, T1, dcool, tcool = [float(x) for x in row]
+      model_id = 'wr-phi{:02.0f}-shock-v{:03.0f}'.format(phiH, u0)
+
+      # Energy flux dissipated in shock
+      dE0 = 0.5*mp*(1.0 + 4.0*yHe)*km**3 * (n0*u0**3 - n1*v1**3)
+
+      # erg/cm3/s
+      extra_heat = dE0/(v1*km*theat)
+
+      with open(model_id + '.in', 'w') as f:
+          f.write(cloudy_input.format(hden=n1))
+          f.write(ngc6888_abundances_input)
+          f.write(shock_input.format(logExtraHeat=np.log10(extra_heat)-20))
+          f.write(wr136_radiation_input.format(phi=phiH))
+
+      print(model_id, u0, T1, extra_heat)
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+wr-phi11-shock-v062 62.3 113000.0 5.442995589046405e-15
+wr-phi11-shock-v068 68.2 134000.0 5.5433986793370724e-15
+wr-phi11-shock-v076 76.3 165000.0 5.636863930529897e-15
+wr-phi11-shock-v082 81.6 187000.0 5.6716325469415616e-15
+wr-phi11-shock-v088 88.1 217000.0 5.727835452001219e-15
+wr-phi11-shock-v096 96.5 259000.0 5.7774596623923815e-15
+wr-phi11-shock-v108 108.0 321000.0 5.831990540766476e-15
+wr-phi11-shock-v125 125.0 425000.0 5.94039927119553e-15
+wr-phi11-shock-v153 153.0 634000.0 5.970971351253502e-15
+wr-phi11-shock-v197 197.0 1050000.0 5.9553380205044314e-15
+#+end_example
+
+
+** DONE Running the models
+CLOSED: [2015-05-28 Thu 11:51]
+Do this interactively in a shell, just to be on the safe side
+
+** TODO Making the plots
+
+#+BEGIN_SRC python :results file :return pltfile
+  import os
+  import glob
+  import numpy as np
+  from matplotlib import pyplot as plt
+  import seaborn as sns
+  from astropy.table import Table
+  import sys
+  sys.path.append('/Users/will/Work/CLOUDY/claudia/')
+  from claudia import CloudyModel
+
+  CloudyModel.skipsaves.append('continuum')
+  CloudyModel.skipsaves.remove(".tim")
+
+
+  pltfile = 'wr-multi-shock-coolcurve.pdf'
+  <<cool-read-func>>
+  t = get_cooltable(11.0, 0.0, cwd='..')
+
+  ovr_files = glob.glob('wr-phi11-shock-*.ovr')
+  colors = sns.dark_palette('orange', len(ovr_files))
+  for ovr_file, c in zip(ovr_files, colors):
+      prefix = ovr_file.replace('.ovr', '')
+      label = 'V = ' + prefix.split('-')[-1][1:] + ' km/s'
+      m = CloudyModel(prefix, niter=0)
+      imax = np.argmax(m.cool.Temp_K)
+      NeNp = m.ovr.HII*m.ovr.hden*m.ovr.eden
+      plt.loglog(m.cool.Temp_K[:imax:imax-1],
+                 m.cool.Ctot_ergcm3s[:imax:imax-1]/NeNp[:imax:imax-1],
+                 'o', color=c)
+      plt.loglog(m.cool.Temp_K[imax:],
+                 m.cool.Ctot_ergcm3s[imax:]/NeNp[imax:],
+                 label=label, color=c)
+  # plt.loglog(m.cool.Temp_K, m.cool.Htot_ergcm3s/NeNp)
+  plt.loglog(t['Temperature'], t['Lambda (erg cm3/s)'],
+             label='CIE', color=(0.3, 0.3, 0.3, 0.3), lw=5, zorder=100)
+  plt.xlim(1e2, 1e9)
+  plt.ylim(1e-24, 1e-19)
+  plt.xlabel('Temperature, K')
+  plt.ylabel('Cooling, Λ(T), erg·cm³/s')
+  plt.legend(title='Shock velocity')
+  plt.savefig(pltfile)
+#+END_SRC
+
+#+RESULTS:
+[[file:/Users/will/Dropbox/JaneWR/TimeCloudy/wr-multi-shock-coolcurve.pdf]]
+
+
+#+BEGIN_SRC python :results file :return pltfile
+  import os
+  import glob
+  import numpy as np
+  from matplotlib import pyplot as plt
+  import seaborn as sns
+  from astropy.table import Table
+  import sys
+  sys.path.append('/Users/will/Work/CLOUDY/claudia/')
+  from claudia import CloudyModel
+
+  CloudyModel.skipsaves.append('continuum')
+  CloudyModel.skipsaves.remove(".tim")
+
+  pltfile = 'wr-multi-shock-time-evolution.pdf'
+
+
+  ovr_files = glob.glob('wr-phi11-shock-*.ovr')
+  colors = sns.dark_palette('orange', len(ovr_files))
+  for ovr_file, c in zip(ovr_files, colors):
+      prefix = ovr_file.replace('.ovr', '')
+      label = 'V = ' + prefix.split('-')[-1][1:] + ' km/s'
+      m = CloudyModel(prefix, niter=0)
+
+      plt.loglog(m.tim.elapsed_time/3.15576e7, m.tim['T'], color=c)
+      plt.xlabel('Time, yr')
+      plt.ylabel('Temperature, K')
+      plt.savefig(pltfile)
+#+END_SRC
+
+#+RESULTS:
+[[file:/Users/will/Dropbox/JaneWR/TimeCloudy/wr-multi-shock-time-evolution.pdf]]
+
+** Mapping onto distance
+
+This is the same as I [[id:05FA6299-E408-4935-8237-194ECCA91844][did above]] but now I have to do the integral separately for each model because the cooling function is different
+
+
+
+#+name: cooling-shock-table
+#+header: :var models=cooling-zone-models
+#+BEGIN_SRC python :results file :return pltfile
+  import os
+  import numpy as np
+  from scipy import interpolate, optimize, integrate
+  from astropy.table import Table
+  from matplotlib import pyplot as plt
+  import seaborn as sns
+  import sys
+  sys.path.append('/Users/will/Work/CLOUDY/claudia/')
+  from claudia import CloudyModel
+
+  CloudyModel.skipsaves.append('continuum')
+  CloudyModel.skipsaves.remove(".tim")
+
+
+  k = 1.3806503e-16                         # Boltzmann's constant [cgs]
+  mp = 1.67262158e-24                       # Proton rest mass [cgs]
+  yHe = 0.162                               # He/H abundance
+  xHeplus = 1.0                             # He is all singly ionized
+  xH = 1.0                                  # H is all ionized
+  mu = 1.0 + 3.0*yHe                        # Mean mass per nucleon
+  gamma = 5./3.                             # adiabatic index
+  yr = 3.15576e7                            # Year in seconds
+  pc = 3.085677582e18                       # Parsec in cm
+  km = 1e5
+
+  phiH = 11.0
+
+  # Set up graph for temperature and density
+  pltfile = 'wr-multi-shock-distance.pdf'
+  fig, (axtop, axbot) = plt.subplots(2, 1, sharex=True)
+
+  pltfile_em = pltfile.replace('distance', 'em-distance')
+  fig_em, axes_em = plt.subplots(6, 1, sharex=True)
+  fig_em.set_size_inches(6, 12)
+  ax6563, ax4363, ax5007, axLcool, ax5007frac, axOcharge = axes_em
+
+  # Loop over all the shock velocities
+  colors = sns.dark_palette('orange', len(models[:-1]))
+  for row, c in zip(models[:-1], colors):
+      M0, u0, v1, n0, n1, N2, T1, dcool, tcool = [float(x) for x in row]
+      model_id = 'wr-phi{:02.0f}-shock-v{:03.0f}'.format(phiH, u0)
+      label = 'Vs = {:.0f} km/s'.format(u0)
+
+      try:
+          m = CloudyModel(model_id, niter=0)
+      except:
+          print('Failed to read', model_id)
+          continue
+
+      # Net cooling coefficient for all times
+      NeNp = m.ovr.HII*m.ovr.hden*m.ovr.eden
+      Lambda_full = (m.cool.Ctot_ergcm3s - m.cool.Htot_ergcm3s)/NeNp
+      # index corresponding to initial post-shock state
+      # Heuristic is that it is point where net cooling is highest
+      istart = np.argmax(Lambda_full)
+      # And corresponding T, which should be more or less T1
+      Tstart = m.cool.Temp_K[istart]
+      # Photoionization equilibrium T
+      Teq = m.cool.Temp_K.min()
+      print(istart, Teq, Tstart)
+      # Now restrict to the post-shock zone
+      T_grid = m.cool.Temp_K[istart:]
+      Lambda_grid = Lambda_full[istart:]
+      integrand_grid = T_grid**2 / Lambda_grid
+      integral_grid = integrate.cumtrapz(integrand_grid, T_grid, initial=0.0)
+      T = T_grid
+      s = (2./3.)*(Lambda_grid[0]/Tstart**3)*(integral_grid[0] - integral_grid)
+
+      # We need to recalculate tcool and dcool because the Lambda(T1) is
+      # now very different - it is much higher because of the under-ionization
+      Lambda1 = Lambda_grid[0]
+      Pressure = (m.ovr.hden*(1.0 + yHe) + m.ovr.eden)*k*m.cool.Temp_K
+      P1 = Pressure[istart]
+      L1 = Lambda1*NeNp[istart]
+      # Cooling time in seconds
+      tcool = P1/((gamma - 1.)*L1)
+      # Cooling distance in parsecs
+      dcool = v1*km*tcool/pc
+      
+      x = np.hstack([[-0.05, 0.0], dcool*s]) 
+      axtop.semilogy(x, np.hstack([[Teq, Teq], T]), color=c)
+      den = n1*Tstart/T
+      axbot.semilogy(x, np.hstack([[n0, n0], den]), label=label, color=c)
+
+      # And plot the emissivities too
+      Lcool = m.cool.Ctot_ergcm3s[istart:]*(den/n1)**2
+      em5007 = (10**m.ems.O__3_500684A[istart:])*(den/n1)**2 
+      em4363 = (10**m.ems.O__3_436321A[istart:])*(den/n1)**2 
+      em6563 = (10**m.ems.H__1_656285A[istart:])*(den/n1)**2 
+      Ostack = np.vstack([m.ovr["O"+j] for j in "123456"])
+      O789 = 1.0 - Ostack.sum(axis=0.0)
+      Ostack = np.vstack([m.ovr["O"+j] for j in "123456"] + [O789])
+      Ocharge = np.sum(Ostack*np.arange(7)[:, None], axis=0)[istart:]
+      ss = s/np.nanmax(s[T > 1.1*Teq])
+      ax5007.plot(ss, em5007, label=label, color=c)
+      ax4363.plot(ss, em4363/em5007, color=c)
+      ax6563.plot(ss, em5007/em6563, color=c)
+      axLcool.plot(ss, Lcool, color=c)
+      ax5007frac.plot(ss, em5007/Lcool, color=c)
+      axOcharge.plot(ss, Ocharge, color=c)
+
+  axtop.set_ylim(9000, 1.5e6)
+  axbot.set_ylim(0.3, 200.0)
+  axbot.set_xlabel('Distance, pc')
+  axbot.set_ylabel('Density, pcc')
+  axtop.set_ylabel('Temperature, K')
+  axbot.set_xscale('symlog', linthreshx=1.e-5)
+  axtop.set_xscale('symlog', linthreshx=1.e-5)
+  axbot.legend(ncol=2, fontsize='x-small', loc='upper left')
+  fig.savefig(pltfile)
+
+  axes_em[-1].set_xlabel('Fraction of total cooling distance')
+  ax6563.set_ylabel('[O III] 5007/Hα ratio')
+  ax5007.legend(ncol=2, fontsize='x-small', loc='upper left')
+  ax4363.set_ylabel('[O III] 4363/5007 ratio')
+  ax5007.set_ylabel('[O III] 5007 emissivity')
+  axLcool.set_ylabel('Total cooling, erg/cm³/s')
+  ax5007frac.set_ylabel('[O III] 5007 fraction of cooling')
+  axOcharge.set_ylabel('Mean charge of Oxygen')
+  for ax in axes_em:
+      ax.set_xscale('log')
+      ax.set_yscale('log')
+      ax.set_xlim(1e-6, 1.5)
+  ax5007.set_ylim(3e-25, 1.5e-20)
+  ax6563.set_ylim(0.1, 150)
+  axOcharge.set_yscale('linear')
+  fig_em.savefig(pltfile_em)
+
+
+
+#+END_SRC
+
+#+RESULTS: cooling-shock-table
+[[file:/Users/will/Dropbox/JaneWR/TimeCloudy/wr-multi-shock-distance.pdf]]
+

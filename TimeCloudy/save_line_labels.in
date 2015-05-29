@@ -1,0 +1,8 @@
+title Just save the damn line labels
+hden 1 linear
+table star "powr-models.mod" 2 
+phi(h) 11
+save line labels ".dat"
+set dr 0 
+set nend 1
+stop zone 1
