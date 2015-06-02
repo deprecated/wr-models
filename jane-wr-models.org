@@ -1501,9 +1501,12 @@ This is the same as I [[id:05FA6299-E408-4935-8237-194ECCA91844][did above]] but
   fig, (axtop, axbot) = plt.subplots(2, 1, sharex=True)
 
   pltfile_em = pltfile.replace('distance', 'em-distance')
-  fig_em, axes_em = plt.subplots(6, 1, sharex=True)
-  fig_em.set_size_inches(6, 12)
-  ax6563, ax4363, ax5007, axLcool, ax5007frac, axOcharge = axes_em
+  fig_em, axes_em = plt.subplots(9, 1, sharex=True)
+  fig_em.set_size_inches(10, 27)
+  ax6563, ax5007, ax4363, axO3Ha, axLcool, ax5007frac, axOcharge, axTagain, axNagain = axes_em
+
+  pltfile_em2 = pltfile.replace('distance', 'em2-distance')
+  fig_em2, (ax6563_2, ax5007_2) = plt.subplots(2, 1, sharex=True)
 
   # Loop over all the shock velocities
   colors = sns.dark_palette('orange', len(models[:-1]))
@@ -1563,12 +1566,17 @@ This is the same as I [[id:05FA6299-E408-4935-8237-194ECCA91844][did above]] but
       Ostack = np.vstack([m.ovr["O"+j] for j in "123456"] + [O789])
       Ocharge = np.sum(Ostack*np.arange(7)[:, None], axis=0)[istart:]
       ss = s/np.nanmax(s[T > 1.1*Teq])
-      ax5007.plot(ss, em5007, label=label, color=c)
-      ax4363.plot(ss, em4363/em5007, color=c)
-      ax6563.plot(ss, em5007/em6563, color=c)
+      ax5007.plot(ss, em5007, color=c)
+      ax6563.plot(ss, em6563, color=c)
+      ax5007_2.plot(ss, em5007, label=label, color=c)
+      ax6563_2.plot(ss, em6563, color=c)
+      ax4363.plot(ss, em4363/em5007, label=label, color=c)
+      axO3Ha.plot(ss, em5007/em6563, color=c)
       axLcool.plot(ss, Lcool, color=c)
       ax5007frac.plot(ss, em5007/Lcool, color=c)
       axOcharge.plot(ss, Ocharge, color=c)
+      axTagain.plot(ss, T, color=c)
+      axNagain.plot(ss, den, color=c)
 
   axtop.set_ylim(9000, 1.5e6)
   axbot.set_ylim(0.3, 200.0)
@@ -1581,22 +1589,43 @@ This is the same as I [[id:05FA6299-E408-4935-8237-194ECCA91844][did above]] but
   fig.savefig(pltfile)
 
   axes_em[-1].set_xlabel('Fraction of total cooling distance')
-  ax6563.set_ylabel('[O III] 5007/Hα ratio')
-  ax5007.legend(ncol=2, fontsize='x-small', loc='upper left')
+  ax6563.set_ylabel('Hα 6563 emissivity')
+  ax4363.legend(ncol=2, fontsize='x-small', loc='lower left')
   ax4363.set_ylabel('[O III] 4363/5007 ratio')
+  axO3Ha.set_ylabel('[O III] 5007/Hα ratio')
   ax5007.set_ylabel('[O III] 5007 emissivity')
   axLcool.set_ylabel('Total cooling, erg/cm³/s')
+  axTagain.set_ylabel('Temperature, K')
+  axNagain.set_ylabel('Total Hydrogen density, /cm³')
   ax5007frac.set_ylabel('[O III] 5007 fraction of cooling')
   axOcharge.set_ylabel('Mean charge of Oxygen')
   for ax in axes_em:
-      ax.set_xscale('log')
+      ax.set_xscale('linear')
       ax.set_yscale('log')
-      ax.set_xlim(1e-6, 1.5)
+      ax.set_xlim(0.0, 1.2)
   ax5007.set_ylim(3e-25, 1.5e-20)
-  ax6563.set_ylim(0.1, 150)
+  axO3Ha.set_ylim(0.1, 150)
   axOcharge.set_yscale('linear')
+  axOcharge.set_ylim(0.0, 8.0)
+  for ax in axLcool, ax4363, ax5007, ax6563, axNagain, axTagain, ax5007frac, axO3Ha:
+      ax.set_yscale('linear')
+      ax.set_ylim(0.0, None)
+  axO3Ha.set_ylim(0.0, 40.0)
+
+  
+
+  fig_em.tight_layout()
   fig_em.savefig(pltfile_em)
 
+
+  ax5007_2.set_ylim(0.0, None)
+  ax6563_2.set_ylim(0.0, None)
+  ax5007_2.set_xlabel('Distance, pc')
+  ax5007_2.set_ylabel('[O III] 5007 emissivity')
+  ax6563_2.set_ylabel('Hα 6563 emissivity')
+  ax5007_2.set_xlim(0.0, 1.2)
+  ax5007_2.legend(ncol=2, fontsize='x-small', loc='upper left')
+  fig_em2.savefig(pltfile_em2)
 
 
 #+END_SRC
@@ -1604,3 +1633,14 @@ This is the same as I [[id:05FA6299-E408-4935-8237-194ECCA91844][did above]] but
 #+RESULTS: cooling-shock-table
 [[file:/Users/will/Dropbox/JaneWR/TimeCloudy/wr-multi-shock-distance.pdf]]
 
+
+* Notes on interpretation of NGC 6888
+
++ There are outer [O III] emitting filaments
++ And then inner brighter flocculent shell that emits Ha, [S II] and a bit of [O III]
++ The original idea was that the outer filaments are the leading edge of the shock
+  + And then there is a cooling zone, followed by the equilibrium shell
+  + This was somewhat based on Moore et al 2000
+    + But now I reread it, they were not saying exactly that
++ Anyway, the models show that there is NO [O III] emission from the shock itself
++ And the Alba paper shows that the outer filaments have a lower N abundance
