@@ -3,7 +3,7 @@
 
                        **************************************13Jun01**************************************
                        *                                                                                 *
-                       * title test of WR spectrum                                                       *
+                       * title Test of reading in a table spectrum                                       *
                        * table star "powr-WR-06-14.ascii" 1.0                                            *
                        * #<< powr-WR-06-1 model    1 read.       age =          1.00                 >>> *
                        * #<< FINAL:     age =          1.00                                          >>> *
@@ -12,8 +12,6 @@
                        * set nend 1                                                                      *
                        * stop zone 1                                                                     *
                        * set dr 0                                                                        *
-                       * set save hash "return"                                                          *
-                       * set save flush                                                                  *
                        * save continuum units Angstroms ".con"                                           *
                        *                                                                                 *
                        ***********************************************************************************
@@ -93,7 +91,7 @@ Attention: duplicate reaction H-,Li+=>H,Li -- using new version
  Nickel     0  2.23e-08 6.76e-04 9.99e-01 5.30e-04 0.00e+00 0.00e+00 0.00e+00 0.00e+00 0.00e+00 0.00e+00 0.00e+00 0.00e+00 0.00e+00
  Copper     0  2.94e-08 4.20e-03 9.96e-01 2.79e-04 0.00e+00 0.00e+00 0.00e+00 0.00e+00 0.00e+00 0.00e+00 0.00e+00 0.00e+00 0.00e+00
  Zinc       0  4.98e-06 9.59e-02 9.04e-01 3.16e-05 0.00e+00 0.00e+00 0.00e+00 0.00e+00 0.00e+00 0.00e+00 0.00e+00 0.00e+00 0.00e+00
-   test of WR spectrum  
+   Test of reading in a table spectrum  
    Calculation stopped because NZONE reached. Iteration 1 of 1
    The geometry is plane-parallel.
  C-Continuum zero at some energies.
@@ -110,15 +108,13 @@ Attention: duplicate reaction H-,Li+=>H,Li -- using new version
    Grains were not present but might survive in this environment (energy density temperature was 1.48e+01K)
 
                        ********************************> Cloudy 13.06.01 <********************************
-                       * title test of WR spectrum                                                       *
+                       * title Test of reading in a table spectrum                                       *
                        * table star "powr-WR-06-14.ascii" 1.0                                            *
                        * hden 1                                                                          *
                        * phi(h) 11                                                                       *
                        * set nend 1                                                                      *
                        * stop zone 1                                                                     *
                        * set dr 0                                                                        *
-                       * set save hash "return"                                                          *
-                       * set save flush                                                                  *
                        * save continuum units Angstroms ".con"                                           *
                        *********************************> Log(U): -0.48 <*********************************
                        >>>>>>>>>> Cautions are present.
@@ -787,7 +783,7 @@ He 1      1.95430m  -25.613    0.0010      Ca 2      3933.66A  -24.790    0.0069
 
 
 
- test of WR spectrum  
+ Test of reading in a table spectrum  
  Cooling:  HFBc            0 :0.201 Fe 3c           0 :0.105 Ne 2c           0 :0.059 S  3c           0 :0.308 N  2c           0 :0.103 HFFc            0 :0.073  
  Heating:  BFH1            0 :0.937 BFHe            0 :0.061  
 
@@ -831,7 +827,7 @@ He 1      1.95430m  -25.613    0.0010      Ca 2      3933.66A  -24.790    0.0069
    <a>:4.84E-07  erdeFe0.0E+00  Tcompt1.42E+11  Tthr1.16E+11  <Tden>: 5.40E+03  <dens>:2.37E-23  <MolWgt>6.50E-01
      Mean Jeans  l(cm)1.17E+21  M(sun)1.00E+07  smallest:     len(cm):1.17E+21  M(sun):1.00E+07  a_ox tran:  0.00
  Rion:1.000E+30  Dist:0.00E+00  Diam:0.000E+00
- Hatom level 70  HatomType: add  HInducImp  F  He tot level: 63  He2 level:   70  ExecTime     9.0
+ Hatom level 70  HatomType: add  HInducImp  F  He tot level: 63  He2 level:   70  ExecTime     9.4
  ConvrgError(%)  <eden>  0.033  MaxEden  0.033  <H-C>   0.00  Max(H-C)    0.00  <Press>   0.000  MaxPrs er  0.000
   Continuity(%)  chng Te   0.0  elec den   0.0  n(H2)    0.0  n(CO)        0.0
 
@@ -1118,7 +1114,7 @@ He 1      1.95430m  -25.613    0.0010      Ca 2      3933.66A  -24.790    0.0069
  Zinc        3.733  3.733  3.733  3.733
 
                1      2      3      4      5      6      7      8      9     10     11     12     13     14     15     16     17
-test of WR spectrum  
+Test of reading in a table spectrum  
 
 ---------------Convergence statistics---------------
        1.5 mean iterations/state convergence
@@ -1128,5 +1124,5 @@ test of WR spectrum
          1 mean step length searches/chemistry step
 ----------------------------------------------------
 
- Cloudy ends: 1 zone, 1 iteration, 5 cautions. (single thread) ExecTime(s) 9.05
+ Cloudy ends: 1 zone, 1 iteration, 5 cautions. (single thread) ExecTime(s) 9.36
  [Stop in cdMain at ../maincl.cpp:482, Cloudy exited OK]
