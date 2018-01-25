@@ -1,4 +1,4 @@
-title Test of reading in a  spectrum
+title Test of reading in a table spectrum
 table star "powr-WR-06-14.ascii" 1.0
 hden 1
 phi(h) 11
