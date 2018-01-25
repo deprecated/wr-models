@@ -1,0 +1,11 @@
+title Test of reading in a table spectrum with added background spectrum
+table star "powr-WR-06-14.ascii" 1.0
+hden 1
+phi(h) 11
+cmb
+set nend 1
+stop zone 1
+set dr 0
+save continuum units Angstroms ".con"
+
+
