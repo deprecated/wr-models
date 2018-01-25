@@ -1,0 +1,14 @@
+which clang++
+ls /fs/nil/other0/will/anaconda3/bin/
+sudo yum list devtoolset-7\*
+pwd
+echo $PATH
+exit
+echo $PATH
+exit
+export PATH=/opt/rh/devtoolset-7/root/usr/bin:/usr/local/bin:/bin:/usr/bin:/usr/X11/bin
+which clang
+clang -v
+clang -V
+clang --version
+exit
