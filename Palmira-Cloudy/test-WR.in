@@ -1,12 +1,10 @@
-title test of WR spectrum
+title Test of reading in a  spectrum
 table star "powr-WR-06-14.ascii" 1.0
 hden 1
 phi(h) 11
 set nend 1
 stop zone 1
 set dr 0
-set save hash "return"
-set save flush
 save continuum units Angstroms ".con"
 
 
