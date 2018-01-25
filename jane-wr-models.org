@@ -22,9 +22,9 @@ $D/cloudy.exe -p test-WR
   sys.path.append('/Users/will/Work/CLOUDY/claudia/')
   from claudia import CloudyModel
 
-  pltfile = 'palmira-test.pdf'
+  pltfile = 'palmira-test-gcc.pdf'
 
-  m = CloudyModel("Palmira-Cloudy/C17.00/test-WR")
+  m = CloudyModel("Palmira-Cloudy/linux-trunk-bg/test-WR-bg")
   wav = m.con.Cont__nu
   flux = m.con.incident
 
@@ -34,20 +34,56 @@ $D/cloudy.exe -p test-WR
   wav2, flux2 = 10**tab['col1'], 10**tab['col2']
 
   fig, ax = plt.subplots()
-  ax.loglog(wav, flux)
-  ax.loglog(wav2, flux2)
+  ax.loglog(wav2, wav2*flux2, label="Original spectrum")
+  ax.loglog(wav, flux, label="Cloudy incident continuum")
+  ax.legend()
   ax.set(
       xlim=[100.0, 1e4],
       ylim=[1e-12, 100],
       xlabel="Wavelength, $\AA$",
-      ylabel="Flux",
+      ylabel=r"SED: $\lambda\, F_{\lambda}$",
   )
   fig.savefig(pltfile)
 #+END_SRC
 
 #+RESULTS:
-[[file:palmira-test.pdf]]
+[[file:palmira-test-gcc.pdf]]
 
+#+BEGIN_SRC python :results file :return pltfile
+  import numpy as np
+  from matplotlib import pyplot as plt
+  import seaborn as sns
+  from astropy.table import Table
+  import sys
+  sys.path.append('/Users/will/Work/CLOUDY/claudia/')
+  from claudia import CloudyModel
+
+  pltfile = 'palmira-test-llvm.pdf'
+
+  m = CloudyModel("Palmira-Cloudy/linux-llvm-trunk/test-WR")
+  wav = m.con.Cont__nu
+  flux = m.con.incident
+
+  tab = Table.read("Palmira-Cloudy/sed.txt",
+                   format="ascii.no_header")
+                   # colnames=['Wavelength', 'Flux'])
+  wav2, flux2 = 10**tab['col1'], 10**tab['col2']
+
+  fig, ax = plt.subplots()
+  ax.loglog(wav2, wav2*flux2, label="Original spectrum")
+  ax.loglog(wav, flux, label="Cloudy incident continuum")
+  ax.legend()
+  ax.set(
+      xlim=[100.0, 1e4],
+      ylim=[1e-12, 100],
+      xlabel="Wavelength, $\AA$",
+      ylabel=r"SED: $\lambda\, F_{\lambda}$",
+  )
+  fig.savefig(pltfile)
+#+END_SRC
+
+#+RESULTS:
+[[file:palmira-test-llvm.pdf]]
 
 ** Make the .ascii file from the individual model files
 :LOGBOOK:  
