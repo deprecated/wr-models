@@ -1,6 +1,54 @@
 * Preparing WR models for use with Cloudy
 + Models are Potsdam Wolf Rayet - PoWR
   + website: http://www.astro.physik.uni-potsdam.de/~wrh/PoWR/powrgrid1.html
+** Palmira's problems with version C17 of Cloudy [2018-01-24 Wed]
++ C17 does something wrong with the WR atmosphere files
++ [X]  Compile Cloudy
++ Make a test case
+** Test case [[file:Palmira-Cloudy/test-WR.in]]
+*** Run 
+#+BEGIN_SRC sh
+D=~/Work/CLOUDY/cloudy/source
+cd Palmira-Cloudy
+$D/cloudy.exe -p test-WR
+#+END_SRC
+*** Plot the continuum
+#+BEGIN_SRC python :results file :return pltfile
+  import numpy as np
+  from matplotlib import pyplot as plt
+  import seaborn as sns
+  from astropy.table import Table
+  import sys
+  sys.path.append('/Users/will/Work/CLOUDY/claudia/')
+  from claudia import CloudyModel
+
+  pltfile = 'palmira-test.pdf'
+
+  m = CloudyModel("Palmira-Cloudy/C17.00/test-WR")
+  wav = m.con.Cont__nu
+  flux = m.con.incident
+
+  tab = Table.read("Palmira-Cloudy/sed.txt",
+                   format="ascii.no_header")
+                   # colnames=['Wavelength', 'Flux'])
+  wav2, flux2 = 10**tab['col1'], 10**tab['col2']
+
+  fig, ax = plt.subplots()
+  ax.loglog(wav, flux)
+  ax.loglog(wav2, flux2)
+  ax.set(
+      xlim=[100.0, 1e4],
+      ylim=[1e-12, 100],
+      xlabel="Wavelength, $\AA$",
+      ylabel="Flux",
+  )
+  fig.savefig(pltfile)
+#+END_SRC
+
+#+RESULTS:
+[[file:palmira-test.pdf]]
+
+
 ** Make the .ascii file from the individual model files
 :LOGBOOK:  
 CLOCK: [2015-03-28 Sat 18:31]--[2015-03-28 Sat 19:39] =>  1:08
@@ -111,6 +159,9 @@ $ cd -
 
 
 
+
+* Simple test of Cloudy continuum output
++ According to the documentation, the 
 * Modeling the shocks around WR nebulae
 
 We want to find:
