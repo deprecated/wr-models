@@ -513,7 +513,7 @@ CLOCK: [2015-05-25 Mon 09:52]--[2015-05-25 Mon 12:33] =>  2:41
 
 ****** [O III] and Ha emissivities
 
-******* Equilibrium emissivity in the cooling zoone
+******* Equilibrium emissivity in the cooling zone
 
 ******* Non equilibrium emissivity in the shock
 
