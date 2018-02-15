@@ -1,0 +1,6 @@
+# size distribution file for WR124 grains
+# based on:
+#>>refer	grain	size distribution	Vamvatira-Nakou al., 2016, A&A, 588, A92
+2010403 # magic number for version control
+ssize  # choices are SSIZE, POWER, EXP1, EXP2, EXP3
+1.4  # single size (micron)
