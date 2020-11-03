@@ -1,6 +1,14 @@
 * Preparing WR models for use with Cloudy
 + Models are Potsdam Wolf Rayet - PoWR
   + website: http://www.astro.physik.uni-potsdam.de/~wrh/PoWR/powrgrid1.html
+** Palmira problem with grain compilation in C17 [2018-02-15 Thu]
+#+BEGIN_SRC sh
+D=~/Work/CLOUDY/cloudy/source
+cd Cloudy-Test-2018
+$D/cloudy.exe -p compilewr124grain
+#+END_SRC
+
+
 ** Palmira's problems with version C17 of Cloudy [2018-01-24 Wed]
 + C17 does something wrong with the WR atmosphere files
 + [X]  Compile Cloudy

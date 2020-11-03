@@ -1,0 +1,43 @@
+                                                         Cloudy 13.06.01
+                                                         www.nublado.org
+
+                       **************************************13Jun01**************************************
+                       *                                                                                 *
+                       * title this will compile only one grain species                                  *
+                       * # this will use default of 10 bins                                              *
+                       * #compile agb-silicate ism grains                                                *
+                       * # this will do 1 large bin                                                      *
+                       * #compile agb-silicate ism grains 1                                              *
+                       * # this will do 1 large bin for pahs                                             *
+                       * #compile pah ab08 grains 1                                                      *
+                       * # AB08 size distribution, charged PAH, 10 size bins                             *
+                       * # compile grain 10 bins "ph2c.rfi" ab08                                         *
+                       * # AB08 size distribution, neutral PAH, 10 size bins                             *
+                       * #compile grain 10 bins "ph2n.rfi" ab08                                          *
+                       * # WR124 size distribution, silicates, 10 size bins, big                         *
+                       * #compile grains 10 bins "silicatejane.rfi" "wr124c.szd"                         *
+                       * #compile grains 10 bins "silicatejane.rfi" "wr124f.szd"                         *
+                       * #compile grains 10 bins "silicatejane.rfi" "wr124g.szd"                         *
+                       * #compile grains 10 bins "silicatejane.rfi" "wr124e.szd"                         *
+                       * # WR124 big grain, silicates, 10 micron                                         *
+                       * #compile grain "silicatejane.rfi" "wr124e-big.szd"                              *
+                       * # WR124 big grain, silicates, 10 micron                                         *
+                       * compile grain "silicatejane.rfi" "wr124_1o4um.szd"                              *
+
+ Starting mie_write_opc, output will be written to silicatejane_wr124_1o4um.opc
+
+    absorption cs extrapolated below 7.3717e-07 Ryd
+    absorption cs extrapolated above 1.4313e+03 Ryd
+    scattering cs extrapolated below 7.3717e-07 Ryd
+    scattering cs extrapolated above 1.4313e+03 Ryd
+    asymmetry parameter extrapolated below 7.3717e-07 Ryd
+    asymmetry parameter extrapolated above 8.1844e+02 Ryd
+ Starting calculation of inverse attenuation length
+    inverse attenuation length extrapolated below 7.3717e-07 Ryd
+    inverse attenuation length extrapolated above 1.4313e+03 Ryd
+
+ Opacity file silicatejane_wr124_1o4um.opc written succesfully
+
+Success!!  Created grain opacity file(s).
+Make sure this directory is on the path.
+ [Stop in ParseCompile at parse_compile.cpp:316, Cloudy exited OK]

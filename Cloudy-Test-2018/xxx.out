@@ -1,0 +1,24 @@
+                                                         Cloudy 13.06.01
+                                                         www.nublado.org
+
+                       **************************************13Jun01**************************************
+                       *                                                                                 *
+                       * compile grain "silicatejane.rfi" "wr124_1o4um.szd"                              *
+
+ Starting mie_write_opc, output will be written to silicatejane_wr124_1o4um.opc
+
+    absorption cs extrapolated below 7.3717e-07 Ryd
+    absorption cs extrapolated above 1.4313e+03 Ryd
+    scattering cs extrapolated below 7.3717e-07 Ryd
+    scattering cs extrapolated above 1.4313e+03 Ryd
+    asymmetry parameter extrapolated below 7.3717e-07 Ryd
+    asymmetry parameter extrapolated above 8.1844e+02 Ryd
+ Starting calculation of inverse attenuation length
+    inverse attenuation length extrapolated below 7.3717e-07 Ryd
+    inverse attenuation length extrapolated above 1.4313e+03 Ryd
+
+ Opacity file silicatejane_wr124_1o4um.opc written succesfully
+
+Success!!  Created grain opacity file(s).
+Make sure this directory is on the path.
+ [Stop in ParseCompile at parse_compile.cpp:316, Cloudy exited OK]
