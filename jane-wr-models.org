@@ -237,7 +237,7 @@ The abundances are not right, but should be qualitatively right
 
 ** Compare with the real WR models
 :PROPERTIES:
-:noweb:    yes
+:header-args: :noweb yes
 :END:
 
 *** Plot cooling functions
@@ -670,10 +670,13 @@ CLOCK: [2015-05-25 Mon 09:52]--[2015-05-25 Mon 12:33] =>  2:41
 And [[/Users/will/Dropbox/Org/shell-thickness.pdf][here]] is the corresponding graph of the shell thickness as a function of Mach number, assuming that \(R = 2.5''\) and \(n_{3} = 2000 \mathrm{cm^{-3}}\). 
 * Tests of time-dependent Cloudy
 :PROPERTIES:
-:dir:      TimeCloudy
-:noweb:    yes    
+:header-args: :noweb yes :dir TimeCloudy
 :END:
 
+
+#+begin_src python
+import numpy as np
+#+end_src
 ** Mode for cloudy input files 
 #+BEGIN_SRC emacs-lisp
   (require 'generic-x) ;; we need this
@@ -1259,8 +1262,7 @@ This is the initial test model
 
 * [2/3] Production runs of Cloudy shock models
 :PROPERTIES:
-:dir:      TimeCloudy
-:noweb:    yes    
+:header-args: :dir TimeCloudy :noweb yes    
 :END:
 
 ** DONE Writing the Cloudy input files
@@ -1449,11 +1451,12 @@ Do this interactively in a shell, just to be on the safe side
 
 This is the same as I [[id:05FA6299-E408-4935-8237-194ECCA91844][did above]] but now I have to do the integral separately for each model because the cooling function is different
 
+## #+BEGIN_SRC python :results file :return pltfile
 
 
 #+name: cooling-shock-table
 #+header: :var models=cooling-zone-models
-#+BEGIN_SRC python :results file :return pltfile
+#+BEGIN_SRC python :results file :return pltfile :tangle TimeCloudy/wr-multi-shock-plot.py
   import os
   import numpy as np
   from scipy import interpolate, optimize, integrate
@@ -1493,9 +1496,20 @@ This is the same as I [[id:05FA6299-E408-4935-8237-194ECCA91844][did above]] but
   pltfile_em2 = pltfile.replace('distance', 'em2-distance')
   fig_em2, (ax6563_2, ax5007_2) = plt.subplots(2, 1, sharex=True)
 
+  pltfile_emcum = pltfile.replace('distance', 'emcum')
+  fig_cum, [
+      ax5007_cum,
+      ax4363_cum,
+      axLc_cum,
+      axO3frac_cum,
+      axOcharge_cum,
+      axT_cum,
+  ] = plt.subplots(6, 1, sharex=True, figsize=(6, 10))
+
   # Loop over all the shock velocities
   colors = sns.dark_palette('orange', len(models[:-1]))
-  for row, c in zip(models[:-1], colors):
+  print(models)
+  for row, c in reversed(list(zip(models[:-1], colors))):
       M0, u0, v1, n0, n1, N2, T1, dcool, tcool = [float(x) for x in row]
       model_id = 'wr-phi{:02.0f}-shock-v{:03.0f}'.format(phiH, u0)
       label = 'Vs = {:.0f} km/s'.format(u0)
@@ -1505,7 +1519,6 @@ This is the same as I [[id:05FA6299-E408-4935-8237-194ECCA91844][did above]] but
       except:
           print('Failed to read', model_id)
           continue
-
       # Net cooling coefficient for all times
       NeNp = m.ovr.HII*m.ovr.hden*m.ovr.eden
       Lambda_full = (m.cool.Ctot_ergcm3s - m.cool.Htot_ergcm3s)/NeNp
@@ -1535,7 +1548,7 @@ This is the same as I [[id:05FA6299-E408-4935-8237-194ECCA91844][did above]] but
       tcool = P1/((gamma - 1.)*L1)
       # Cooling distance in parsecs
       dcool = v1*km*tcool/pc
-      
+
       x = np.hstack([[-0.05, 0.0], dcool*s]) 
       axtop.semilogy(x, np.hstack([[Teq, Teq], T]), color=c)
       den = n1*Tstart/T
@@ -1547,10 +1560,21 @@ This is the same as I [[id:05FA6299-E408-4935-8237-194ECCA91844][did above]] but
       em4363 = (10**m.ems.O__3_436321A[istart:])*(den/n1)**2 
       em6563 = (10**m.ems.H__1_656285A[istart:])*(den/n1)**2 
       Ostack = np.vstack([m.ovr["O"+j] for j in "123456"])
-      O789 = 1.0 - Ostack.sum(axis=0.0)
+      O789 = 1.0 - Ostack.sum(axis=0)
       Ostack = np.vstack([m.ovr["O"+j] for j in "123456"] + [O789])
       Ocharge = np.sum(Ostack*np.arange(7)[:, None], axis=0)[istart:]
-      ss = s/np.nanmax(s[T > 1.1*Teq])
+      istop = np.nanargmax(s[T > 1.05*Teq])
+      ss = s/s[istop]
+
+      # Fractional cumulative emissivity of [O III]
+      dss = np.diff(ss, prepend=0.0)
+      cumem = integrate.cumtrapz(em5007, s, initial=0.0)
+      cumem /= cumem[istop]
+
+      T0 = np.average(T[:istop], weights=em5007[:istop])
+      t2 = np.average(((T[:istop]-T0)/T0)**2, weights=em5007[:istop])
+      tlabel = f"{label} $T = {T0/1e3:.1f}$ kK, $t^2 = {t2:.3f}$"
+
       ax5007.plot(ss, em5007, color=c)
       ax6563.plot(ss, em6563, color=c)
       ax5007_2.plot(ss, em5007, label=label, color=c)
@@ -1562,6 +1586,14 @@ This is the same as I [[id:05FA6299-E408-4935-8237-194ECCA91844][did above]] but
       axOcharge.plot(ss, Ocharge, color=c)
       axTagain.plot(ss, T, color=c)
       axNagain.plot(ss, den, color=c)
+
+      ax5007_cum.plot(cumem, em5007, label=tlabel, color=c)
+      ax4363_cum.plot(cumem, em4363/em5007, color=c)
+      axLc_cum.plot(cumem, Lcool, color=c)
+      axO3frac_cum.plot(cumem, em5007/Lcool, color=c)
+      axOcharge_cum.plot(cumem, Ocharge, color=c)
+      axT_cum.plot(cumem, T, color=c)
+
 
   axtop.set_ylim(9000, 1.5e6)
   axbot.set_ylim(0.3, 200.0)
@@ -1597,7 +1629,7 @@ This is the same as I [[id:05FA6299-E408-4935-8237-194ECCA91844][did above]] but
       ax.set_ylim(0.0, None)
   axO3Ha.set_ylim(0.0, 40.0)
 
-  
+
 
   fig_em.tight_layout()
   fig_em.savefig(pltfile_em)
@@ -1612,12 +1644,80 @@ This is the same as I [[id:05FA6299-E408-4935-8237-194ECCA91844][did above]] but
   ax5007_2.legend(ncol=2, fontsize='x-small', loc='upper left')
   fig_em2.savefig(pltfile_em2)
 
+  ax5007_cum.set_xlim(0.0, 1.2)
+  ax5007_cum.set_ylim(0.0, None)
+  ax4363_cum.set_ylim(0.0, None)
+  axLc_cum.set_ylim(0.0, 3e-19)
+  axOcharge_cum.set_ylim(1.9, 3.1)
+  axT_cum.set_ylim(0.0, 5e4)
+  ax5007_cum.legend(ncol=2, fontsize='x-small', loc='lower right')
+  axT_cum.set_xlabel('Fraction of cumulative [O III] 5007 emission')
+  ax5007_cum.set_ylabel('[O III] 5007')
+  ax4363_cum.set_ylabel('[O III] 4363 / 5007')
+  axT_cum.set_ylabel('Temperature, K')
+  axLc_cum.set_ylabel("Cooling, erg/cm³/s")
+  axO3frac_cum.set_ylabel("5007 cool frac")
+  axOcharge_cum.set_ylabel('Mean O charge')
+  fig_cum.tight_layout()
+  fig_cum.savefig(pltfile_emcum)
 
 #+END_SRC
 
-#+RESULTS: cooling-shock-table
-[[file:/Users/will/Dropbox/JaneWR/TimeCloudy/wr-multi-shock-distance.pdf]]
+#+RESULTS:
 
+#+RESULTS: cooling-shock-table
+[[file:TimeCloudy/wr-multi-shock-distance.pdf]]
+
+#+begin_src sh :results verbatim
+python wr-multi-shock-plot.py
+#+end_src
+
+#+RESULTS:
+#+begin_example
+[['5.77', '62.3', '17', '3', '11', '100', '1.13e+05', '0.00401', '231'], ['6.32', '68.2', '18.3', '2.5', '9.3', '100', '1.34e+05', '0.00766', '408'], ['7.07', '76.3', '20.2', '2', '7.55', '100', '1.65e+05', '0.0167', '808'], ['7.56', '81.6', '21.5', '1.75', '6.65', '100', '1.87e+05', '0.0279', '1.27e+03'], ['8.16', '88.1', '23', '1.5', '5.74', '100', '2.17e+05', '0.0518', '2.2e+03'], ['8.94', '96.5', '25', '1.25', '4.82', '100', '2.59e+05', '0.114', '4.46e+03'], ['10', '108', '27.8', '1', '3.88', '100', '3.21e+05', '0.322', '1.13e+04'], ['11.5', '125', '31.8', '0.75', '2.93', '100', '4.25e+05', '1.19', '3.65e+04'], ['14.1', '153', '38.7', '0.5', '1.97', '100', '6.34e+05', '5.18', '1.31e+05'], ['18.3', '197', '49.7', '0.3', '1.19', '100', '1.05e+06', '23.4', '4.61e+05']]
+Failed to read from ./wr-phi11-shock-v062.tim
+Failed to read from ./wr-phi11-shock-v062.ovr
+Failed to read wr-phi11-shock-v062
+<claudia.CloudyModel object at 0x7f7f3253acd0>
+14 10107.0 132660.0
+[0.         0.00266843 0.0177542  0.04602424 0.09813467 0.18436765
+ 0.32945758 0.57998185 1.27369655]
+<claudia.CloudyModel object at 0x7f7f325da190>
+13 10115.0 164580.0
+[0.00000000e+00 1.19828591e-03 8.92995169e-03 2.34754622e-02
+ 5.55110022e-02 1.12490547e-01 2.09913048e-01 3.78129244e-01
+ 6.80456415e-01 3.29083277e+00]
+<claudia.CloudyModel object at 0x7f7f325f2640>
+13 10122.0 185490.0
+[0.00000000e+00 1.01452663e-03 6.58920836e-03 1.66735963e-02
+ 4.14612199e-02 8.90641196e-02 1.72187175e-01 3.16587284e-01
+ 5.68354087e-01 1.30656701e+00]
+<claudia.CloudyModel object at 0x7f7f32609af0>
+14 10131.0 218000.0
+[0.         0.0011795  0.00469014 0.01097494 0.02943828 0.06937617
+ 0.14149214 0.26696202 0.48290044 0.91362226        nan]
+<claudia.CloudyModel object at 0x7f7f326310a0>
+13 10144.0 257690.0
+[0.00000000e+00 6.57222782e-04 2.69685114e-03 5.62290579e-03
+ 1.69986884e-02 4.77449145e-02 1.06874989e-01 2.09038106e-01
+ 3.80304435e-01 6.67396555e-01 1.91457426e+00]
+<claudia.CloudyModel object at 0x7f7f3265a280>
+13 10165.0 324810.0
+[0.00000000e+00 4.19917176e-04 1.26058541e-03 2.48211726e-03
+ 1.13694289e-02 4.17487616e-02 1.00985559e-01 1.94476373e-01
+ 3.33065009e-01 5.35284648e-01 8.74729450e-01            nan]
+<claudia.CloudyModel object at 0x7f7f326a3130>
+14 10198.0 426460.0
+[0.00000000e+00 3.14883072e-04 5.20540277e-04 1.93385137e-03
+ 1.56829213e-02 6.23201465e-02 1.42976392e-01 2.42969546e-01
+ 3.61819420e-01 5.08480520e-01 7.08188928e-01 1.17187690e+00]
+<claudia.CloudyModel object at 0x7f7f326b0070>
+13 10261.0 630360.0
+[0.00000000e+00 1.52976116e-04 2.70679392e-04 2.79299345e-04
+ 1.02235863e-03 9.91298907e-03 4.42434396e-02 1.10582937e-01
+ 1.97353744e-01 3.01989022e-01 4.33222665e-01 6.12262927e-01
+ 9.35753730e-01]
+#+end_example
 
 * Notes on interpretation of NGC 6888
 
